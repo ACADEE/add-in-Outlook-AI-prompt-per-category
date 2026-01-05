@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "description": "Outlook Add-in with AI-powered email responses based on categories",
   "private": true,
+  "type": "module",
   "scripts": {
     "start:server": "cd server && npm run dev",
     "start:addin": "cd addin && npm run dev",
     "install:all": "cd server && npm install && cd ../addin && npm install",
-    "generate-certs": "openssl req -x509 -newkey rsa:2048 -nodes -keyout certs/localhost.key -out certs/localhost.crt -days 365 -subj '/CN=localhost'"
+    "generate-certs": "node generate-certs.js",
+    "setup": "node generate-certs.js && cd server && npm run setup"
   },
   "keywords": [
     "outlook",
