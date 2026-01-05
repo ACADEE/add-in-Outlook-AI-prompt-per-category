@@ -4,6 +4,12 @@ Add-in Outlook qui lit les catégories d'un email, sélectionne automatiquement 
 
 ## 📖 Guides d'installation
 
+### 🆕 Première installation (clonage depuis Git)
+
+- 💻 **[Guide d'installation depuis Git](INSTALLATION_CLONE.md)** - Cloner le projet et l'installer sur votre PC
+
+### 🚀 Installation dans Outlook
+
 Choisissez le guide adapté à votre plateforme :
 
 - 🌐 **[Outlook 365 Online (Web)](QUICK_OUTLOOK_ONLINE.md)** - Guide rapide 3 minutes
