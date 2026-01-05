@@ -1,6 +1,11 @@
-# Outlook AI Add-in - Réponse automatique par catégorie
+# AI Email Response - Outlook & Thunderbird
 
-Add-in Outlook qui lit les catégories d'un email, sélectionne automatiquement un prompt basé sur ces catégories, et génère une proposition de réponse via OpenAI.
+Extension email qui lit les catégories d'un email, sélectionne automatiquement un prompt basé sur ces catégories, et génère une proposition de réponse via OpenAI.
+
+## 📧 Deux versions disponibles
+
+- 📬 **Outlook** (365 Online, Desktop) - Add-in Office.js
+- 🦅 **Mozilla Thunderbird** - Extension WebExtension (✅ Plus simple à installer !)
 
 ## 📖 Guides d'installation
 
@@ -8,7 +13,17 @@ Add-in Outlook qui lit les catégories d'un email, sélectionne automatiquement 
 
 - 💻 **[Guide d'installation depuis Git](INSTALLATION_CLONE.md)** - Cloner le projet et l'installer sur votre PC
 
-### 🚀 Installation dans Outlook
+### 🦅 Mozilla Thunderbird (✅ Recommandé - Installation simple)
+
+- 📧 **[Guide Thunderbird](THUNDERBIRD_INSTALL.md)** - Installation complète et utilisation
+
+**Avantages Thunderbird :**
+- ✅ Installation en 2 clics
+- ✅ Pas de certificats complexes
+- ✅ Fonctionne sur Linux, macOS, Windows
+- ✅ Gratuit et open-source
+
+### 📬 Microsoft Outlook
 
 Choisissez le guide adapté à votre plateforme :
 
