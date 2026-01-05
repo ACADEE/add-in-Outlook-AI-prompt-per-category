@@ -2,6 +2,15 @@
 
 Add-in Outlook qui lit les catégories d'un email, sélectionne automatiquement un prompt basé sur ces catégories, et génère une proposition de réponse via OpenAI.
 
+## 📖 Guides d'installation
+
+Choisissez le guide adapté à votre plateforme :
+
+- 🌐 **[Outlook 365 Online (Web)](QUICK_OUTLOOK_ONLINE.md)** - Guide rapide 3 minutes
+- 🌐 **[Outlook 365 Online - Détaillé](OUTLOOK_ONLINE_INSTALL.md)** - Guide complet avec dépannage
+- 🖥️ **Outlook Desktop** - Voir la section "Installation dans Outlook" ci-dessous
+- ⚡ **[Guide de démarrage rapide](QUICKSTART.md)** - Pour tous les environnements
+
 ## 🎯 Fonctionnalités
 
 - ✅ Lecture automatique des catégories Outlook
