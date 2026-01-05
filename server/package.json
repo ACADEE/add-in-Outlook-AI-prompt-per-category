@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "node src/index.js"
+    "dev": "node src/index.js",
+    "generate-env": "node generate-env.js",
+    "setup": "node generate-env.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.5.0",
