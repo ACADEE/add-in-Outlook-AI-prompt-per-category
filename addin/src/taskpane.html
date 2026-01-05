@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
+    textarea { width: 100%; min-height: 140px; }
+    select, input, button { width: 100%; margin: 6px 0; padding: 8px; }
+    .row { display:flex; gap:8px; }
+    .row > * { flex:1; }
+    .small { font-size: 12px; opacity: .85; }
+    .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h3>Réponse IA</h3>
+
+  <div class="small">Backend</div>
+  <input id="backendUrl" value="https://localhost:8787" />
+
+  <div class="small">Catégories détectées (si accessibles)</div>
+  <input id="detectedCategories" class="mono" readonly value="(en cours)"/>
+
+  <div class="row">
+    <div>
+      <div class="small">Choix du prompt</div>
+      <select id="promptSelect"></select>
+    </div>
+    <div>
+      <div class="small">Langue</div>
+      <select id="languageSelect">
+        <option value="fr" selected>fr</option>
+        <option value="en">en</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="btnGenerate">Générer le brouillon</button>
+
+  <div class="small">Brouillon généré</div>
+  <textarea id="draft"></textarea>
+
+  <button id="btnInsert">Insérer dans la réponse</button>
+
+  <div class="small">Admin</div>
+  <a href="./admin.html" target="_blank">Ouvrir l'espace d'administration</a>
+
+  <script src="./taskpane.js"></script>
+</body>
+</html>

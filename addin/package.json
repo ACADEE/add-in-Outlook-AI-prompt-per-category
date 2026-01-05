@@ -1,0 +1,11 @@
+{
+  "name": "outlook-ai-addon-addin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx http-server -S -C ../certs/localhost.crt -K ../certs/localhost.key -p 3000 -c-1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
