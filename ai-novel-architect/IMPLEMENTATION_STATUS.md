@@ -2,36 +2,67 @@
 
 ## ✅ Fonctionnalités Complètement Implémentées
 
-### Backend (100%)
+### Backend (100%) ✨ LATEST: Scene-Level System
 
 #### 1. Système de Types
 - ✅ `BookMetadata` avec champ `language`
 - ✅ `WritingSettings` complet
-- ✅ `Subchapter` avec `ghostwriter_instructions`
+- ✅ **`Scene` interface** (NEW) avec:
+  - `scene_index`, `title`, `beat`, `ghostwriter_instructions`
+  - `content`, `wordCount`, `status`
+- ✅ `Subchapter` avec `ghostwriter_instructions` et **`scenes[]` array**
 - ✅ `Chapter` avec `subchapters[]` et `writingSettings`
 - ✅ `ProjectData` avec `defaultWritingSettings`
+- ✅ **Scene Management Request Types** (NEW):
+  - `GenerateBeatSheetRequest`
+  - `GenerateSceneRequest`
+  - `AddSceneRequest`, `DeleteSceneRequest`, `ReorderSceneRequest`, `UpdateSceneRequest`
+- ✅ **Chapter Management Request Types** (NEW):
+  - `DeleteChapterRequest`, `ReorderChapterRequest`
 
 #### 2. Agent Architect
 - ✅ Génération de sous-chapitres (3-5 par chapitre)
 - ✅ Instructions Ghostwriter détaillées par sous-chapitre
+- ✅ **Génération de scènes (2-4 par sous-chapitre)** (NEW)
+- ✅ **Beat Sheet generation** avec beats et instructions détaillées
 - ✅ Mode Raw Import amélioré:
   - Extraction d'instructions depuis notes brutes
   - Découpage intelligent en chapitres
+  - **Extraction de scènes depuis Brain Dump** (NEW)
+  - **Transformation notes → beats + instructions** (NEW)
   - Paramètre `targetChapterCount`
   - Détection automatique de la langue
-- ✅ Mode Wizard avec sous-chapitres
+- ✅ Mode Wizard avec sous-chapitres et scènes
+- ✅ Paramètre `withScenes` pour activer/désactiver la génération de scènes
 
-#### 3. Agent Ghostwriter
-- ✅ Méthode `writeSubchapter()` - Génération individuelle
-- ✅ Méthode `writeChapter()` améliorée - Génération par lots
+#### 3. Agent Beatsheet (NEW) ⭐
+- ✅ Génération de Beat Sheet depuis un résumé
+- ✅ Création de scènes avec:
+  - Titres évocateurs
+  - Beats (descriptions courtes - 1 phrase)
+  - Instructions Ghostwriter détaillées (2-4 phrases minimum)
+- ✅ Paramètre `targetSceneCount` optionnel
+- ✅ Intégration avec le contexte du projet (personnages, chapitres précédents)
+- ✅ Support multi-langue complet
+
+#### 4. Agent Ghostwriter
+- ✅ **Méthode `writeScene()`** (NEW) - Génération d'une scène individuelle
+- ✅ **Méthode `buildScenePrompt()`** (NEW) - Prompt spécifique aux scènes
+- ✅ Méthode `writeSubchapter()` améliorée:
+  - Détection automatique de scènes
+  - Génération scène par scène si présentes
+  - Concaténation automatique des contenus
+  - Mise à jour du statut et wordCount des scènes
+- ✅ Méthode `writeChapter()` - Génération par lots
 - ✅ Support multi-langue (FR, EN, ES, DE, IT, PT)
 - ✅ Respect strict des instructions Ghostwriter
-- ✅ Application des `WritingSettings`
-- ✅ Cohérence avec:
+- ✅ Application des `WritingSettings` (avec ajustement par scène)
+- ✅ Cohérence multi-niveaux:
   - Chapitres précédents
   - Sous-chapitres précédents (même chapitre)
+  - **Scènes précédentes (même sous-chapitre)** (NEW)
   - État des personnages (Bible)
-- ✅ Règles critiques de cohérence
+- ✅ Règles critiques de cohérence au niveau scène
 
 ### Frontend Existant
 
