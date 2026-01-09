@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ApiProvider } from './contexts/ApiContext';
+import { Homepage } from './pages/Homepage';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
@@ -21,9 +22,12 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AppRoutes() {
+  const { currentUser } = useAuth();
+
   return (
     <>
       <Routes>
+        <Route path="/" element={<Homepage />} />
         <Route
           path="/login"
           element={
@@ -56,9 +60,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
-      <Footer />
+      {!currentUser && <Footer />}
     </>
   );
 }
