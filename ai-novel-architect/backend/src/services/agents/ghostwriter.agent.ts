@@ -27,6 +27,30 @@ export class GhostwriterAgent {
       throw new Error(`Subchapter ${subchapterIndex} not found in chapter ${chapterIndex}`);
     }
 
+    // Si le sous-chapitre a des scènes, générer chacune individuellement
+    if (subchapter.scenes && subchapter.scenes.length > 0) {
+      const sceneContents: string[] = [];
+
+      for (const scene of subchapter.scenes) {
+        const content = await this.writeScene(
+          projectData,
+          chapterIndex,
+          subchapter.subchapter_index,
+          scene.scene_index,
+          additionalInstructions
+        );
+        sceneContents.push(content);
+
+        // Mettre à jour le contenu de la scène
+        scene.content = content;
+        scene.wordCount = content.split(/\s+/).length;
+        scene.status = 'completed';
+      }
+
+      return sceneContents.join('\n\n');
+    }
+
+    // Sinon, générer le sous-chapitre entier d'un coup
     const settings = chapter.writingSettings || projectData.defaultWritingSettings;
     const prompt = this.buildSubchapterPrompt(projectData, chapter, subchapter, settings, additionalInstructions);
 
@@ -39,6 +63,42 @@ export class GhostwriterAgent {
     } catch (error) {
       console.error('Ghostwriter Agent Error:', error);
       throw new Error('Failed to write subchapter');
+    }
+  }
+
+  /**
+   * Génère une scène individuelle
+   */
+  async writeScene(
+    projectData: ProjectData,
+    chapterIndex: number,
+    subchapterIndex: number,
+    sceneIndex: number,
+    additionalInstructions?: string
+  ): Promise<string> {
+    const chapter = projectData.outline.find(c => c.chapter_index === chapterIndex);
+    if (!chapter) {
+      throw new Error(`Chapter ${chapterIndex} not found`);
+    }
+
+    const subchapter = chapter.subchapters.find(s => s.subchapter_index === subchapterIndex);
+    if (!subchapter) {
+      throw new Error(`Subchapter ${subchapterIndex} not found in chapter ${chapterIndex}`);
+    }
+
+    const scene = subchapter.scenes?.find(s => s.scene_index === sceneIndex);
+    if (!scene) {
+      throw new Error(`Scene ${sceneIndex} not found in subchapter ${subchapterIndex}`);
+    }
+
+    const settings = chapter.writingSettings || projectData.defaultWritingSettings;
+    const prompt = this.buildScenePrompt(projectData, chapter, subchapter, scene, settings, additionalInstructions);
+
+    try {
+      return await this.gemini.generateContent(prompt);
+    } catch (error) {
+      console.error('Ghostwriter Scene Generation Error:', error);
+      throw new Error('Failed to write scene');
     }
   }
 
@@ -166,6 +226,81 @@ RÈGLES CRITIQUES:
 6. INTÈGRE les éléments de la Bible des personnages naturellement
 
 Écris directement le contenu du sous-chapitre "${subchapter.title}", sans introduction ni commentaire.`;
+  }
+
+  private buildScenePrompt(
+    projectData: ProjectData,
+    chapter: Chapter,
+    subchapter: Subchapter,
+    scene: any,
+    settings?: WritingSettings,
+    additionalInstructions?: string
+  ): string {
+    const metadata = projectData.book_metadata;
+    const language = this.getLanguageInstructions(metadata.language);
+
+    // Scènes précédentes dans CE sous-chapitre
+    const previousScenes = subchapter.scenes
+      ?.filter(s => s.scene_index < scene.scene_index && s.content)
+      .map(s => `Scène ${s.scene_index}: ${s.title}\nBeat: ${s.beat}\nContenu: ${s.content}`)
+      .join('\n\n');
+
+    // État des personnages
+    const charactersState = projectData.characters
+      .map(c => `${c.name} (${c.role}): ${JSON.stringify(c.current_state || c.initial_state)}`)
+      .join('\n');
+
+    // Paramètres d'écriture
+    const writingInstructions = settings
+      ? `
+PARAMÈTRES D'ÉCRITURE:
+- Nombre de mots cible: ${Math.floor(settings.wordCount / 3)} mots (environ)
+- Style: ${settings.style}
+- Niveau de détail: ${settings.detailLevel}
+- Longueur des paragraphes: ${settings.paragraphLength}
+`
+      : 'Longueur cible: 300-500 mots.';
+
+    return `Tu es "The Ghostwriter", un auteur de roman professionnel.
+
+${language}
+
+CONTEXTE DU LIVRE:
+- Titre: ${metadata.title}
+- Genre: ${metadata.genre}
+- Tonalité: ${metadata.tone}
+- Point de vue: ${metadata.pov}
+
+PERSONNAGES (À RESPECTER ABSOLUMENT):
+${charactersState}
+
+CHAPITRE ${chapter.chapter_index}: ${chapter.title}
+SOUS-CHAPITRE ${subchapter.subchapter_index}: ${subchapter.title}
+
+SCÈNES PRÉCÉDENTES (Dans ce sous-chapitre):
+${previousScenes || 'Aucune (début du sous-chapitre)'}
+
+SCÈNE À ÉCRIRE:
+- Numéro: ${scene.scene_index}
+- Titre: ${scene.title}
+- Beat: ${scene.beat}
+- Instructions détaillées: ${scene.ghostwriter_instructions}
+
+${writingInstructions}
+
+${subchapter.ghostwriter_instructions ? `CONTEXTE DU SOUS-CHAPITRE:\n${subchapter.ghostwriter_instructions}\n` : ''}
+
+${additionalInstructions ? `INSTRUCTIONS SUPPLÉMENTAIRES:\n${additionalInstructions}\n` : ''}
+
+RÈGLES CRITIQUES:
+1. RESPECTE EXACTEMENT le beat et les instructions de la scène
+2. ASSURE la continuité parfaite avec les scènes précédentes du sous-chapitre
+3. MAINTIENS la cohérence avec les personnages (états, localisations, émotions)
+4. RESPECTE le style, la tonalité et le point de vue définis
+5. NE JAMAIS contredire les événements passés ou l'état des personnages
+6. Concentre-toi UNIQUEMENT sur cette scène - ne dépasse pas son scope
+
+Écris directement le contenu de la scène "${scene.title}", sans introduction ni commentaire.`;
   }
 
   private buildChapterPrompt(

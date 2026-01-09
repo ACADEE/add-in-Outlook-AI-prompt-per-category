@@ -7,22 +7,34 @@ export interface BookMetadata {
   tone: string;
   pov: string;
   targetLength: number;
-  language: string; // NEW: Langue d'écriture (fr, en, es, etc.)
+  language: string; // Langue d'écriture (fr, en, es, etc.)
   inspirations?: string;
 }
 
 export interface WritingSettings {
-  wordCount: number; // Nombre de mots cible par sous-chapitre
+  wordCount: number; // Nombre de mots cible par scène/sous-chapitre
   style: string; // Style d'écriture (descriptif, dialogues, action, etc.)
   detailLevel: 'concise' | 'balanced' | 'detailed'; // Niveau de détail
   paragraphLength: 'short' | 'medium' | 'long'; // Longueur des paragraphes
 }
 
+// NEW: Scene (Scène) - Niveau le plus granulaire
+export interface Scene {
+  scene_index: number;
+  title: string; // Nom de la scène
+  beat: string; // Description courte (Beat Sheet) - ce qui se passe dans la scène
+  ghostwriter_instructions: string; // Instructions détaillées pour le Ghostwriter
+  content?: string; // Contenu généré
+  wordCount?: number;
+  status: 'draft' | 'in_progress' | 'completed' | 'validated';
+}
+
 export interface Subchapter {
   subchapter_index: number;
   title: string;
-  ghostwriter_instructions: string; // Instructions spécifiques pour le Ghostwriter
-  content?: string;
+  ghostwriter_instructions?: string; // Instructions globales pour le sous-chapitre
+  scenes: Scene[]; // NEW: Liste des scènes
+  content?: string; // Contenu complet (concaténation des scènes)
   wordCount?: number;
   status: 'draft' | 'in_progress' | 'completed' | 'validated';
 }
@@ -33,7 +45,7 @@ export interface Chapter {
   summary: string;
   cliffhanger?: string;
   ghostwriter_instructions?: string; // Instructions globales pour le chapitre
-  subchapters: Subchapter[]; // NEW: Sous-chapitres
+  subchapters: Subchapter[]; // Sous-chapitres
   content?: string; // Contenu complet (concaténation des sous-chapitres)
   status: 'draft' | 'in_progress' | 'completed' | 'validated';
   writingSettings?: WritingSettings; // Paramètres d'écriture spécifiques
@@ -63,6 +75,11 @@ export interface ArchitectResponse {
   book_metadata: BookMetadata;
   outline: Chapter[];
   characters: Character[];
+}
+
+// Beat Sheet Generation Response
+export interface BeatSheetResponse {
+  scenes: Scene[]; // Liste des scènes générées
 }
 
 export interface AuditorScore {
@@ -95,6 +112,14 @@ export interface CreateProjectRequest {
   data: BookMetadata | { raw_text: string; targetChapterCount?: number };
 }
 
+export interface GenerateSceneRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  sceneId: string;
+  userInstructions?: string;
+}
+
 export interface GenerateSubchapterRequest {
   projectId: string;
   chapterId: string;
@@ -108,16 +133,69 @@ export interface GenerateChapterRequest {
   userInstructions?: string;
 }
 
+// NEW: Generate Beat Sheet (liste de scènes) à partir d'un résumé
+export interface GenerateBeatSheetRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  summary: string; // Résumé du sous-chapitre
+  targetSceneCount?: number; // Nombre de scènes souhaité
+}
+
 export interface AuditChapterRequest {
   projectId: string;
   chapterId: string;
   chapterText: string;
 }
 
+// Chapter Management
 export interface AddChapterRequest {
   projectId: string;
-  insertAfter?: number; // Si spécifié, insère après ce chapitre
+  insertAfter?: number; // Si spécifié, insère après ce chapitre (sinon ajoute à la fin)
   chapterData: Partial<Chapter>;
+}
+
+export interface DeleteChapterRequest {
+  projectId: string;
+  chapterId: number;
+}
+
+export interface ReorderChapterRequest {
+  projectId: string;
+  chapterId: number;
+  newPosition: number; // Nouvelle position (1-indexed)
+}
+
+// Scene Management
+export interface AddSceneRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  insertAfter?: number; // Si spécifié, insère après cette scène
+  sceneData: Partial<Scene>;
+}
+
+export interface DeleteSceneRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  sceneId: number;
+}
+
+export interface ReorderSceneRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  sceneId: number;
+  newPosition: number;
+}
+
+export interface UpdateSceneRequest {
+  projectId: string;
+  chapterId: string;
+  subchapterId: string;
+  sceneId: number;
+  updates: Partial<Scene>;
 }
 
 export interface ApiResponse<T> {

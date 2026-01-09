@@ -8,12 +8,12 @@ export class ArchitectAgent {
     this.gemini = new GeminiService(apiKey);
   }
 
-  async structureProject(input: BookMetadata | string, targetChapterCount?: number): Promise<ArchitectResponse> {
+  async structureProject(input: BookMetadata | string, targetChapterCount?: number, withScenes: boolean = true): Promise<ArchitectResponse> {
     const isRawText = typeof input === 'string';
 
     const prompt = isRawText
-      ? this.buildRawTextPrompt(input, targetChapterCount)
-      : this.buildFormPrompt(input);
+      ? this.buildRawTextPrompt(input, targetChapterCount, withScenes)
+      : this.buildFormPrompt(input, withScenes);
 
     try {
       const response = await this.gemini.generateContent(prompt);
@@ -24,10 +24,27 @@ export class ArchitectAgent {
     }
   }
 
-  private buildFormPrompt(metadata: BookMetadata): string {
-    return `Tu es "The Architect", un agent IA expert en structure narrative.
+  private buildFormPrompt(metadata: BookMetadata, withScenes: boolean): string {
+    const sceneInstruction = withScenes
+      ? `5. Pour CHAQUE sous-chapitre, génère 2-4 SCÈNES avec Beat Sheet (description courte) et instructions Ghostwriter détaillées`
+      : '';
 
-Ta mission : Créer un plan détaillé de roman à partir des informations suivantes.
+    const sceneExample = withScenes
+      ? `,
+          "scenes": [
+            {
+              "scene_index": 1,
+              "title": "Titre de la scène",
+              "beat": "Description courte de ce qui se passe (Beat Sheet)",
+              "ghostwriter_instructions": "Instructions ULTRA détaillées pour le Ghostwriter: Commence par..., Montre..., Termine par...",
+              "status": "draft"
+            }
+          ]`
+      : '';
+
+    return `Tu es "The Architect", un agent IA expert en structure narrative et Beat Sheet.
+
+Ta mission : Créer un plan détaillé de roman avec découpage en scènes.
 
 INFORMATIONS DU PROJET:
 - Titre: ${metadata.title}
@@ -42,15 +59,18 @@ ${metadata.inspirations ? `- Inspirations: ${metadata.inspirations}` : ''}
 
 TÂCHE:
 1. Génère un plan de chapitres cohérent (environ 20-25 chapitres)
-2. Pour chaque chapitre, crée 3-5 sous-chapitres avec des instructions détaillées pour le Ghostwriter
+2. Pour chaque chapitre, crée 3-5 sous-chapitres
 3. Crée des fiches détaillées pour les personnages principaux
 4. Assure une structure narrative solide avec un arc dramatique
+${sceneInstruction}
 
-IMPORTANT: Les instructions Ghostwriter doivent être TRÈS DÉTAILLÉES et inclure:
-- Les éléments narratifs spécifiques à inclure
-- Les émotions et ambiances à transmettre
-- Les dialogues clés ou informations à révéler
-- Les références aux événements précédents
+IMPORTANT - Instructions Ghostwriter:
+Les instructions doivent être ULTRA PRÉCISES et inclure:
+- Actions spécifiques des personnages
+- Émotions et ambiances à transmettre
+- Dialogues clés ou informations à révéler
+- Références aux événements/personnages/lieux
+- Transitions narratives
 
 RÉPONSE (JSON STRICT):
 {
@@ -75,7 +95,7 @@ RÉPONSE (JSON STRICT):
         {
           "subchapter_index": 1,
           "title": "Titre du sous-chapitre",
-          "ghostwriter_instructions": "Instructions TRÈS détaillées: Commence par décrire..., Introduis le personnage X en montrant..., Crée une tension en...",
+          "ghostwriter_instructions": "Instructions globales pour le sous-chapitre"${sceneExample},
           "status": "draft"
         }
       ],
@@ -101,14 +121,33 @@ RÉPONSE (JSON STRICT):
 Réponds UNIQUEMENT avec le JSON, sans texte additionnel.`;
   }
 
-  private buildRawTextPrompt(rawText: string, targetChapterCount?: number): string {
+  private buildRawTextPrompt(rawText: string, targetChapterCount?: number, withScenes: boolean = true): string {
     const chapterInstruction = targetChapterCount
       ? `Découpe le contenu en EXACTEMENT ${targetChapterCount} chapitres.`
       : `Découpe le contenu en un nombre approprié de chapitres (généralement 20-25).`;
 
-    return `Tu es "The Architect", un agent IA expert en structure narrative.
+    const sceneInstruction = withScenes
+      ? `5. Pour CHAQUE sous-chapitre, extrais ou crée 2-4 SCÈNES avec:
+   - Beat (description courte de ce qui se passe)
+   - Instructions Ghostwriter ULTRA détaillées`
+      : '';
 
-Ta mission : Analyser les notes suivantes et en extraire un plan structuré de roman avec des instructions DÉTAILLÉES pour le Ghostwriter.
+    const sceneExample = withScenes
+      ? `,
+            "scenes": [
+              {
+                "scene_index": 1,
+                "title": "Titre de la scène",
+                "beat": "Description courte (Beat Sheet) extraite des notes",
+                "ghostwriter_instructions": "Instructions DÉTAILLÉES extraites ou déduites des notes. Minimum 3-4 phrases avec actions concrètes.",
+                "status": "draft"
+              }
+            ]`
+      : '';
+
+    return `Tu es "The Architect", un agent IA expert en structure narrative et Beat Sheet.
+
+Ta mission : Analyser les notes et créer un plan structuré avec découpage en scènes.
 
 NOTES BRUTES:
 ${rawText}
@@ -117,19 +156,27 @@ TÂCHE CRITIQUE:
 1. Identifie le concept principal et crée un pitch cohérent
 2. Extrais les personnages mentionnés et crée leurs fiches complètes
 3. ${chapterInstruction}
-4. Pour CHAQUE chapitre identifié, fais un découpage en sous-chapitres (3-5 par chapitre)
-5. Pour CHAQUE sous-chapitre, extrais ou crée des INSTRUCTIONS DÉTAILLÉES pour le Ghostwriter basées sur le contenu des notes
+4. Pour CHAQUE chapitre, fais un découpage en sous-chapitres (3-5 par chapitre)
+${sceneInstruction}
 6. Détermine le genre, le ton, la langue, et les autres métadonnées
 
-IMPORTANT - Instructions Ghostwriter:
-- Si les notes contiennent du contenu narratif, extrais-le comme instructions
-- Si les notes sont vagues, déduis des instructions détaillées cohérentes
-- Chaque instruction doit être ACTIONNABLE et PRÉCISE
-- Inclus les éléments de l'intrigue, les émotions, les dialogues clés
-- Fais référence aux personnages et lieux mentionnés
+IMPORTANT - Extraction d'instructions:
+- Si les notes contiennent du contenu narratif DÉTAILLÉ, extrais-le comme instructions + beats
+- Si les notes sont vagues, déduis des instructions cohérentes et précises
+- Chaque scène doit avoir un BEAT (ce qui se passe) et des INSTRUCTIONS (comment l'écrire)
+- Les instructions doivent être ACTIONNABLES et PRÉCISES
 
-EXEMPLE d'instruction Ghostwriter:
-"Commence par décrire la ville de Paris sous la pluie, ambiance sombre. Jean entre dans la boulangerie, encore traumatisé par l'événement du chapitre précédent. Dialogue avec Marie où il révèle indirectement ses doutes. Termine par la découverte d'une lettre mystérieuse."
+EXEMPLE de scène bien extraite:
+Notes: "Jean entre dans la boulangerie. Il est nerveux. Marie lui demande ce qui ne va pas."
+
+Extraction:
+{
+  "scene_index": 1,
+  "title": "L'arrivée troublée",
+  "beat": "Jean entre dans la boulangerie, visiblement nerveux.",
+  "ghostwriter_instructions": "Décris Jean poussant la porte de la boulangerie. Montre sa nervosité à travers des gestes (mains tremblantes, regard fuyant). Marie est derrière le comptoir, le remarque immédiatement. Dialogue: Marie demande 'Qu'est-ce qui ne va pas, Jean?' avec inquiétude. Insiste sur le contraste entre la chaleur de la boulangerie et l'état troublé de Jean.",
+  "status": "draft"
+}
 
 RÉPONSE (JSON STRICT):
 {
@@ -154,13 +201,7 @@ RÉPONSE (JSON STRICT):
         {
           "subchapter_index": 1,
           "title": "Titre du sous-chapitre",
-          "ghostwriter_instructions": "Instructions DÉTAILLÉES extraites des notes ou déduites logiquement. Minimum 2-3 phrases avec actions concrètes.",
-          "status": "draft"
-        },
-        {
-          "subchapter_index": 2,
-          "title": "Titre du sous-chapitre 2",
-          "ghostwriter_instructions": "Instructions DÉTAILLÉES...",
+          "ghostwriter_instructions": "Instructions globales pour le sous-chapitre"${sceneExample},
           "status": "draft"
         }
       ],
@@ -184,17 +225,20 @@ Réponds UNIQUEMENT avec le JSON, sans texte additionnel.`;
 
   private parseResponse(response: string): ArchitectResponse {
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/) || response.match(/```\n?([\s\S]*?)\n?```/);
       const jsonString = jsonMatch ? jsonMatch[1] : response;
 
       const parsed = JSON.parse(jsonString);
 
-      // Ensure subchapters array exists for each chapter
+      // Ensure subchapters and scenes arrays exist
       if (parsed.outline) {
         parsed.outline = parsed.outline.map((chapter: any) => ({
           ...chapter,
-          subchapters: chapter.subchapters || [],
+          subchapters: (chapter.subchapters || []).map((sub: any) => ({
+            ...sub,
+            scenes: sub.scenes || [],
+            status: sub.status || 'draft'
+          })),
           status: chapter.status || 'draft'
         }));
       }
